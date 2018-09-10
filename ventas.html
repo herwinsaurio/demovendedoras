@@ -1,0 +1,383 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' data: gap: 'unsafe-eval'; style-src * 'self' 'unsafe-inline'; connect-src * ; script-src * 'self' 'unsafe-inline'; media-src *">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--<link rel="icon" href="bootstrap/favicon.ico">-->
+
+    <title>Duracell</title>
+
+    <script src="js/jquery-1.11.3.js"></script>
+    <!--<script src="js/jquery.mobile.min.js"></script>-->
+
+    <!--<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.js"></script>-->
+
+    <script>window.jQuery || document.write('<script src="bootstrap/assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="bootstrap/dist/js/bootstrap.js"></script>
+    <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="css/lobibox.min.css"/>
+    <script src="js/lobibox/lobibox.min.js"></script>
+
+    <script language="JavaScript">
+        function nobackbutton(){
+            window.location.hash="no-back-button";
+            window.location.hash="Again-No-back-button" //chrome
+            window.onhashchange=function(){
+              window.location.hash="no-back-button";
+            }
+        }
+    </script>
+
+    <script>
+
+    var lat;
+    var lon;
+    var tic;
+    tic = getParameterByName('tic');
+    productos();
+
+    function positionInicial(){
+                        var content = document.getElementById("geolocation-test");
+
+                        if (navigator.geolocation){
+                          navigator.geolocation.getCurrentPosition(function(objPosition){
+                            lon = objPosition.coords.longitude;
+                            lat = objPosition.coords.latitude;
+                              //console.log("lat-->"+lat+" lon-->"+lon);
+                          },
+                          function(objPositionError){
+                            switch (objPositionError.code)
+                                    {
+                                      case objPositionError.PERMISSION_DENIED:
+                                        positionInicial();
+                                      break;
+                                      case objPositionError.POSITION_UNAVAILABLE:
+                                        positionInicial();
+                                      break;
+                                      case objPositionError.TIMEOUT:
+                                        positionInicial();
+                                      break;
+                                      default:
+                                        positionInicial();
+                                    }
+                          },
+                          {
+                            maximumAge: 75000,
+                            timeout: 15000
+                          });
+                        }
+                        else
+                        {
+                          alertas('warning','Error, el dispositivo no soporta GPS',4000);
+                        }
+              }
+
+    function position(){
+                        var content = document.getElementById("geolocation-test");
+
+                        if (navigator.geolocation){
+                          navigator.geolocation.getCurrentPosition(function(objPosition){
+                            lon = objPosition.coords.longitude;
+                            lat = objPosition.coords.latitude;
+                              //console.log("lat-->"+lat+" lon-->"+lon);
+                          },
+                          function(objPositionError){
+                            switch (objPositionError.code)
+                                    {
+                                      case objPositionError.PERMISSION_DENIED:
+                                        alertas('warning','Debes activar la Ubicación del dispositivo',4000);
+                                        //content.innerHTML = "No se ha permitido el acceso a la posición del usuario.";
+                                      break;
+                                      case objPositionError.POSITION_UNAVAILABLE:
+                                        //content.innerHTML = "No se ha podido acceder a la información de su posición.";
+                                        alertas('warning','Tu dispositivo no cuenta con GPS en este momento',4000);
+                                      break;
+                                      case objPositionError.TIMEOUT:
+                                        alertas('warning','El GPS de tu dispositivo no responde en este momento',4000);
+                                      break;
+                                      default:
+                                        alertas('warning','Error al obtener la posición',4000);
+                                    }
+                          },
+                          {
+                            maximumAge: 75000,
+                            timeout: 15000
+                          });
+                        }
+                        else
+                        {
+                          alertas('warning','Error, el dispositivo no soporta GPS',4000);
+                        }
+              }
+
+    function getParameterByName(name) {
+              name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+              var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+              results = regex.exec(location.search);
+              return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+          }
+
+    function registra(){
+
+
+
+            position();
+
+            if ( (tic==0) || (tic==undefined) || (tic=='') ){
+                alertas('error','Tu sesión a terminado por favor ingresa nuevamente',4000);
+            }else{
+
+
+                  var prod = $("#prod").val();
+                  var cant = $("#cant").val();
+
+                  if (prod=='0'){
+                    alertas('warning','Debes seleccionar un producto',5000);
+                  }else if (cant==''){
+                    alertas('warning','Debes proporcionar una cantidad',5000);
+                  }else{
+
+                            $("#loader").css("display","block");
+
+                            $("#vendedor").val(tic);
+                            $("#lat").val(lat);
+                            $("#lon").val(lon);
+
+                            var formData = new FormData(document.getElementById("pop1"));
+                            $.ajax({
+                              type: "POST",
+                              contentType: false,
+                              processData: false,
+                              url: "https://www.ulumexico.com/apid4/",
+                              data: formData,
+                              //cache: false
+                            }).done(function(res){
+                                //$("#loader").html("Respuesta: " + res);
+                                var json = JSON.parse(res);
+                                if (json.status == 1) {
+                                    alertas('success',json.status_message,5000);
+                                    $("#loader").css("display","none");
+                                    limpiaCampos();
+                                }else if (json.status == 0){
+                                    alertas('error',json.status_message,5000);
+                                    $("#loader").css("display","none");
+                                }
+                            });
+
+                      }
+
+              }
+
+
+    }
+
+    function alertas(tipo, msg, tiempo){
+
+        Lobibox.notify(tipo, {
+          msg: msg,
+          delay: tiempo
+          //title: '<br>'
+        });
+
+      }
+
+    function menu(op){
+              if (op==1){
+                window.location='checador.html?tic='+tic;
+              }else if (op==2){
+                window.location='ventas.html?tic='+tic;
+              }
+            }
+
+    function productos(){
+              $.ajax({
+                  type: "GET",
+                  url: "https://www.ulumexico.com/apid4/",
+                  data: "functionName=catalogoProductos",
+                  success: function(data){
+                      var json = JSON.parse(data);
+                      //console.log(json);
+
+                      if (json.status == 1) {
+                          $(json.datos).each(function () {
+                              var option = $('<option />');
+                              option.attr('value', this.id).text(this.nombre);
+                              $('#prod').append(option);
+                          });
+                      }else if (json.status == 0) {
+                            alertas('error','No se pudo obtener el catalogo de productos, por favor revisa tu conexión a internet',4000);
+                      }
+
+
+                    //  $("#tienda").append("<option value='"+json.data.+"'>")
+
+
+
+                  }
+              });
+            }
+
+    function limpiaCampos(){
+              //$("#prod").val('');
+              $("#cant").val('');
+              $("#pic1").val('');
+              $("#pic2").val('');
+          }
+
+    function getOut(){
+
+        navigator.notification.confirm(
+             'Do you want to quit',
+              onConfirmQuit,
+             'QUIT TITLE',
+             'OK,Cancel'
+         );
+    }
+
+    function onConfirmQuit(button){
+        if(button == "1"){
+            navigator.app.exitApp();
+        }
+    }
+
+    </script>
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!--<link href="bootstrap/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">-->
+
+    <!-- Custom styles for this template -->
+
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <!--<script src="bootstrap/assets/js/ie-emulation-modes-warning.js"></script>-->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body   onload="nobackbutton(); positionInicial();">
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container" id="menu">
+        <h4>
+        <div class="navbar-header">
+
+          <!--<div style="float:left;"><img src='images/duraLogo.png'></div>-->
+          <div class="btn-group" style="float:right;">
+                <a class="btn btn-default" href="#" onclick="menu('1');">
+                  <i class="far fa-clock" title="Checador"></i>
+                </a>
+                <!--<a class="btn btn-default" href="#"  onclick="menu('2');">
+                  <i class="fa fa-usd" title="Ventas"></i>
+                </a>-->
+                <a class="btn btn-default" href="#"  onclick="menu('2');">
+                  <i class="far fa-address-book" title="Actividades"></i>
+                </a>
+                <a class="btn btn-default" href="salir.html">
+                  <i class="fas fa-sign-out-alt" title="Salir"></i>
+                </a>
+          </div>
+
+        </div>
+      </h4>
+        <!--/.nav-collapse -->
+      </div>
+    </nav>
+    <br><br>
+    <div style="background-color:#c98959; height:32px;"></div>
+
+    <div class="container-fluid img-fluid" id="contCentral">
+
+
+
+        <div class="row" id="rengCentral">
+              <div class="col-xs-12 col-sm-12 col-md-12"  id='colmidInner'>
+
+                <br>
+
+                      <div style="text-align:center;"><h4>Ingresa los datos correctos para <br>registrar tus ventas</h4></div>
+
+                      <div style="margin:0px auto; width:100%; font-family:'Arial'; text-align:center;">
+
+                        <div style="width:100px; height:20px; background-color:#ff9000; display:none;" id="demot"></div>
+
+
+
+
+                          <form action="" id="pop1" enctype="multipart/form-data" method="post">
+
+                                <div style="margin:0px auto; width:300px; font-size:12px; color:#ffffff; font-family:'Arial'; padding:20px;">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-battery-full fa-lg"></i></span>
+                                    <select class="form-control" name="prod" id="prod" name="prod">
+                                      <option value ="0">.:Selecciona una producto:.</option>
+                                    </select>
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                  <span class="input-group-addon"><i class="fa fa-truck fa-lg"></i></span>
+                                  <input class="form-control" type="text" placeholder="Cantidad" id="cant" name="cant" >
+                                </div>
+                                <br>
+                                <p style="color:#000;">Puedes adjuntar 2 fotografias que hayas tomado con tu dispositivo</p>
+                                <div class="input-group">
+                                  <span class="input-group-addon"><i class="fas fa-camera-retro fa-lg"></i></span>
+                                  <input class="form-control" type="file" placeholder="Fotografia" id="pic1" name="pic1" >
+
+                                </div>
+                                <br>
+
+                                <div class="input-group">
+                                  <span class="input-group-addon"><i class="fas fa-camera-retro fa-lg"></i></span>
+                                  <input class="form-control" type="file" placeholder="Fotografia" id="pic2" name="pic2" >
+
+                                </div>
+                                <br>
+                                <div style="color:#ff9800; text-align:center; display:none;" id="loader"><img src='images/loading.gif'></div>
+                                <br>
+                                <input type="button" value=" Enviar " style="color:#000;"  id="envia" onclick="registra();">
+                                <input type="hidden" id="metodo" name="metodo" value="regVenta" >
+                                <input type="hidden" id="tipo" name="tipo" value="ventas" >
+                                <input type="hidden" id="vendedor" name="vendedor" value="" >
+                                <input type="hidden" id="lat" name="lat" value="" >
+                                <input type="hidden" id="lon" name="lon" value="" >
+                          </form>
+
+
+
+
+
+                        </div>
+                      </div>
+
+
+              </div>
+
+
+
+    </div><!-- /.container -->
+
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!--<script src="bootstrap/assets/js/ie10-viewport-bug-workaround.js"></script>-->
+  </body>
+</html>

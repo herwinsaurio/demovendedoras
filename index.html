@@ -1,0 +1,225 @@
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' data: gap: 'unsafe-eval'; style-src * 'self' 'unsafe-inline'; connect-src * ; script-src * 'self' 'unsafe-inline'; media-src *">
+
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--<link rel="icon" href="bootstrap/favicon.ico">-->
+
+   <title></title>
+
+    <script src="js/jquery-1.11.3.js"></script>
+    <script>window.jQuery || document.write('<script src="bootstrap/assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="bootstrap/dist/js/bootstrap.js"></script>
+    <link href="bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="fontAwesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="css/lobibox.min.css"/>
+    <script src="js/lobibox/lobibox.min.js"></script>
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!--<link href="bootstrap/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">-->
+
+    <!-- Custom styles for this template -->
+
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <!--<script src="bootstrap/assets/js/ie-emulation-modes-warning.js"></script>-->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <script>
+
+          tiendas();
+
+          function ingresar(){
+
+            //alert('entro');
+
+            var user = $("#mail").val();
+            var pwd = $("#pwd").val();
+            var tienda = $("#tienda").val();
+
+            if (user==''){
+              alertas('warning','Debes escribir un usuario',4000);
+            }else if (pwd==''){
+              alertas('warning','Debes escribir una contraseña',4000);
+            }else if (tienda=='0'){
+              alertas('warning','Debes seleccionar una tienda',4000);
+            }else{
+
+                      $("#loader").css("display","block");
+
+                        var params = {user: user, pwd: pwd, tienda: tienda, metodo: 'logea'};
+
+                        //console.log(params);
+
+                        $.ajax({
+                          type: "POST",
+                          //contentType: "jsonp",
+                          url: "https://www.ulumexico.com/apid4/",
+                          data: JSON.stringify(params),
+                          //cache: false,
+                          success: function(data){
+                            //console.log(data);
+                            var json = JSON.parse(data);
+                            if (json.status == 1) {
+                                var tic = json.ticket;
+                                $("#loader").css("display","none");
+                                window.location='checador.html?tic='+tic;
+                            }else if (json.status == 0){
+                                alertas('error',json.status_message,4000);
+                                $("#loader").html('<br>El usuario o contraseña son incorrectos');
+                            }
+                          },
+                            error: function(request, status, error) {
+                              $("#resu").html("estado-->"+status);
+                              $("#resu").html("estaText-->"+request.statusText);
+                              $("#resu").html("reqStat-->"+request.status);
+                              $("#resu").html("respText-->"+request.responseText);
+                              $("#resu").html("all-->"+request.getAllResponseHeaders());
+
+                            }
+                        });
+
+                        //window.location='ventas.html';
+
+                }
+
+
+          }
+
+
+          function alertas(tipo, msg, tiempo){
+
+              Lobibox.notify(tipo, {
+                msg: msg,
+                delay: tiempo
+              });
+
+            }
+
+            function tiendas(){
+              $.ajax({
+                  type: "GET",
+                  url: "https://www.ulumexico.com/apid4/",
+                  data: "functionName=catalogoTiendas",
+                  success: function(data){
+                      var json = JSON.parse(data);
+                      console.log(data);
+
+                      if (json.status == 1) {
+                          $(json.datos).each(function () {
+                              var option = $('<option />');
+                              option.attr('value', this.id).text(this.nombre);
+                              $('#tienda').append(option);
+                          });
+                      }else if (json.status == 0) {
+                            alertas('error','No se pudo obtener el catalogo de tiendas, por favor revisa tu conexión a internet',4000);
+                      }
+
+
+                    //  $("#tienda").append("<option value='"+json.data.+"'>")
+
+
+
+                  }
+              });
+            }
+
+    </script>
+
+
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <h4>
+        <div class="navbar-header">
+          <div style="float:left;"><!--<img src='images/duLogo.png'>--></div>
+        </div>
+
+      </h4>
+        <!--/.nav-collapse -->
+      </div>
+    </nav>
+    <br><br>
+    <!--<div class="row" id="botonera" >
+      <div class="col-xs-12 col-sm-12 col-md-12" style="background-color:#cccccc;">-->
+      <div style="background-color:#c98959; height:32px;"></div>
+
+
+      <!--</div>
+    </div>-->
+
+    <div class="container-fluid img-fluid" id="contCentral">
+        <div class="row" id="rengCentral">
+          <div class="col-xs-12 hidden-xs col-sm-12 hidden-sm col-md-8" id="colDer"></div>
+          <div class="col-xs-12 col-sm-12 col-md-4" id="colIzq">
+            <div class="row" id="rowIzqInner">
+              <div class="col-xs-12  col-sm-12 col-md-12"  id="coltopInner"></div>
+              <div class="col-xs-12 col-sm-12 col-md-12"  id='colmidInner'>
+
+                <br><br><br><br><br>
+                  <div id="formalog" style="display:block;">
+                      <div style="margin:0px auto; width:300px; font-size:12px; color:#ffffff; font-family:'Arial'; padding:20px;">
+                            <p style="font-size:25px; color:#000000;">Introduce tus datos P</p>
+                            <br>
+                            <form role="formA" id="popl" >
+                              <div class="input-group margin-bottom-lg">
+                                <span class="input-group-addon"><i class="fa fa-user fa-lg"></i></span>
+                                <input class="form-control" type="text" placeholder="Usuario" id="mail" >
+                              </div>
+                              <br>
+                              <div class="input-group">
+                                <span class="input-group-addon"><i class="fa fa-key fa-lg"></i></span>
+                                <input class="form-control" type="password" placeholder="Contraseña" id="pwd" >
+                              </div>
+                              <br>
+                              <div class="input-group">
+                              <span class="input-group-addon"><i class="fa fa-industry fa-lg"></i></span>
+                                <!--<input class="form-control" type="password" placeholder="Contraseña" id="pwd" >-->
+                                <select class="form-control" name="tienda" id="tienda">
+                                  <option value="0">.:Selecciona una tienda:.</option>
+                                </select>
+                              </div>
+                              <br>
+
+                              <a class="btn btn-default btn-sm" href="#"  id="ingresaUs" onclick="ingresar();">
+                                  <i class="fa fa-user"></i> Ingresar</a>
+                            </form>
+
+                            <div style="color:#ff9800; text-align:center; display:none;" id="loader"><img src='images/loading.gif'></div>
+
+                      </div>
+                  </div>
+
+        </div>
+
+
+
+    </div><!-- /.container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!--<script src="bootstrap/assets/js/ie10-viewport-bug-workaround.js"></script>-->
+  </body>
+</html>
